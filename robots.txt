@@ -1,0 +1,6 @@
+# Robots.txt for Cast in Nepal (नेपालका जातजाति, थर, गोत्र र कुलदेवता)
+User-agent: *
+Allow: /
+
+# Sitemap Location
+Sitemap: https://rishav-dahal.github.io/cast-in-Nepal/sitemap.xml
