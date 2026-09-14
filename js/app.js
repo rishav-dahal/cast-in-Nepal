@@ -1012,24 +1012,27 @@
 
         <!-- Quick Demo Presets -->
         <div class="checker-presets-container">
-          <span class="presets-label">Quick Test Scenarios:</span>
+          <span class="presets-label">
+            <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"></polygon></svg>
+            <span>Quick Test Scenarios:</span>
+          </span>
           <div class="presets-chips-wrap">
-            <button class="preset-chip" data-preset="acharya-sapkota">
+            <button type="button" class="preset-chip" data-preset="acharya-sapkota">
               <span class="preset-dot dot-collision"></span>
               <span>Acharya + Sapkota</span>
               <span class="preset-badge">Kaudinya Collision</span>
             </button>
-            <button class="preset-chip" data-preset="dahal-lamsal">
+            <button type="button" class="preset-chip" data-preset="dahal-lamsal">
               <span class="preset-dot dot-collision"></span>
               <span>Dahal + Lamsal</span>
               <span class="preset-badge">Vatsa Collision</span>
             </button>
-            <button class="preset-chip" data-preset="dulal-dahal">
+            <button type="button" class="preset-chip" data-preset="dulal-dahal">
               <span class="preset-dot dot-compatible"></span>
               <span>Dulal + Dahal</span>
               <span class="preset-badge">Atreya + Vatsa Compatible</span>
             </button>
-            <button class="preset-chip" data-preset="gautam-pokhrel">
+            <button type="button" class="preset-chip" data-preset="gautam-pokhrel">
               <span class="preset-dot dot-collision"></span>
               <span>Gautam + Pokharel</span>
               <span class="preset-badge">Atreya Collision</span>
@@ -1418,19 +1421,21 @@
       <div class="modal-card">
         <div class="modal-header">
           <div class="modal-title-box">
-            <span class="modal-title-dev">${escapeHtml(item.devanagari)}</span>
-            <span class="modal-title-rom">${escapeHtml(item.surname)}</span>
-            <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem;">
+            <div style="display: flex; align-items: baseline; gap: 0.65rem; flex-wrap: wrap;">
+              <span class="modal-title-dev">${escapeHtml(item.devanagari)}</span>
+              <span class="modal-title-rom">${escapeHtml(item.surname)}</span>
+            </div>
+            <div style="margin-top: 0.5rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
               <span class="badge ${catConfig.class}">${escapeHtml(item.category)}</span>
-              <span class="badge" style="background: rgba(255,255,255,0.08); color: var(--text-secondary);">${escapeHtml(item.community)}</span>
+              <span class="badge" style="background: var(--bg-surface-elevated); border: 1px solid var(--border-subtle); color: var(--text-secondary);">${escapeHtml(item.community)}</span>
             </div>
           </div>
-          <button class="modal-close-btn" id="modalCloseBtnInner">✕</button>
+          <button class="modal-close-btn" id="modalCloseBtnInner" title="Close">✕</button>
         </div>
 
         <div class="modal-body">
           <div class="detail-section">
-            <span class="detail-section-title">Lineage & Identity (वंश तथा पहिचान)</span>
+            <span class="detail-section-title">🏛️ Lineage & Identity (वंश तथा पहिचान)</span>
             <div class="detail-grid">
               <div class="detail-box">
                 <div class="detail-box-label">Caste / Community (जात/समुदाय):</div>
@@ -1442,7 +1447,7 @@
               </div>
               <div class="detail-box">
                 <div class="detail-box-label">Gotra (गोत्र):</div>
-                <div class="detail-box-value">${escapeHtml(item.gotra)}${item.gotra_devanagari ? ` (${item.gotra_devanagari})` : ''}</div>
+                <div class="detail-box-value gold-highlight">${escapeHtml(item.gotra)}${item.gotra_devanagari ? ` (${item.gotra_devanagari})` : ''}</div>
               </div>
               <div class="detail-box">
                 <div class="detail-box-label">Pravara / Rishis (प्रवर):</div>
@@ -1452,11 +1457,11 @@
           </div>
 
           <div class="detail-section">
-            <span class="detail-section-title">Spiritual & Regional Roots (कुलदेवता तथा उद्गम)</span>
+            <span class="detail-section-title">🛕 Spiritual & Regional Roots (कुलदेवता तथा उद्गम)</span>
             <div class="detail-grid">
               <div class="detail-box">
                 <div class="detail-box-label">Kuldevata (कुलदेवता):</div>
-                <div class="detail-box-value" style="color: var(--gold-primary);">${escapeHtml(item.kuldevata)}</div>
+                <div class="detail-box-value gold-highlight">${escapeHtml(item.kuldevata)}</div>
               </div>
               <div class="detail-box">
                 <div class="detail-box-label">Traditional Homeland / Concentration:</div>
@@ -1466,7 +1471,7 @@
           </div>
 
           <div class="detail-section">
-            <span class="detail-section-title">Historical Significance & Cultural Context (इतिहास र महत्त्व)</span>
+            <span class="detail-section-title">📜 Historical Significance & Cultural Context (इतिहास र महत्त्व)</span>
             <div class="notes-box">
               ${escapeHtml(item.notes)}
             </div>
@@ -1474,7 +1479,7 @@
 
           ${sagotraList.length > 0 ? `
             <div class="detail-section">
-              <span class="detail-section-title">Sagotra Surnames (${sagotraList.length} sister surnames sharing this Gotra):</span>
+              <span class="detail-section-title">🤝 Sagotra Surnames (${sagotraList.length} sister surnames sharing this Gotra):</span>
               <div class="sagotra-surnames-cloud">
                 ${sagotraList.slice(0, 20).map(s => `
                   <button class="sagotra-chip" data-id="${s.id}">
@@ -1491,9 +1496,9 @@
         <div class="modal-footer">
           <div style="display: flex; gap: 0.5rem; flex-wrap: wrap;">
             <button class="btn btn-outline" id="modalFavToggleBtn">
-              ${isFav ? '❤️ Saved in Favorites' : '🤍 Add to Favorites'}
+              ${isFav ? '❤️ Saved' : '🤍 Add to Favorites'}
             </button>
-            <button class="btn btn-outline" id="modalCheckGotraBtn" style="border-color: var(--gold-primary); color: var(--gold-primary);">
+            <button class="btn btn-outline" id="modalCheckGotraBtn" style="border-color: var(--accent-gold); color: var(--accent-gold);">
               💍 Check Marriage Gotra
             </button>
           </div>
