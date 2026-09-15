@@ -751,11 +751,15 @@ body {
   background: var(--bg-surface);
   border: 1px solid var(--border-subtle);
   border-radius: 8px;
-  overflow: hidden;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  position: relative;
+  box-shadow: var(--shadow-sm);
 }
 
 .responsive-table {
   width: 100%;
+  min-width: 680px;
   border-collapse: collapse;
   text-align: left;
 }
@@ -1392,6 +1396,124 @@ body {
   display: flex;
   flex-direction: column;
   gap: 2rem;
+}
+
+/* Official Census Explorer Card */
+.census-explorer-card {
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: 16px;
+  padding: 1.75rem;
+  box-shadow: var(--shadow-sm);
+  display: flex;
+  flex-direction: column;
+  gap: 1.25rem;
+}
+
+.census-explorer-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  flex-wrap: wrap;
+  gap: 1.25rem;
+  padding-bottom: 1.25rem;
+  border-bottom: 1px solid var(--border-subtle);
+}
+
+.census-official-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5rem;
+  padding: 0.3rem 0.75rem;
+  border-radius: 9999px;
+  background: rgba(239, 68, 68, 0.08);
+  border: 1px solid rgba(239, 68, 68, 0.2);
+  color: #ef4444;
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}
+
+[data-theme="dark"] .census-official-pill {
+  background: rgba(248, 113, 113, 0.12);
+  border-color: rgba(248, 113, 113, 0.3);
+  color: #fca5a5;
+}
+
+.census-stat-badge {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 0.75rem 1.25rem;
+}
+
+.census-stat-badge-num {
+  font-size: 1.5rem;
+  font-weight: 800;
+  color: var(--brand-primary);
+  font-family: var(--font-mono, monospace);
+  line-height: 1.1;
+}
+
+.census-stat-badge-label {
+  font-size: 0.76rem;
+  font-weight: 600;
+  color: var(--text-muted);
+}
+
+.census-metric-grid {
+  display: grid;
+  grid-template-columns: repeat(6, 1fr);
+  gap: 0.85rem;
+}
+
+@media (max-width: 1024px) {
+  .census-metric-grid {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
+@media (max-width: 600px) {
+  .census-metric-grid {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .census-stat-badge {
+    align-items: flex-start;
+    width: 100%;
+  }
+}
+
+.census-metric-tile {
+  background: var(--bg-surface-elevated);
+  border: 1px solid var(--border-subtle);
+  border-radius: 12px;
+  padding: 0.85rem 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.c-metric-title {
+  font-size: 0.74rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  color: var(--text-muted);
+}
+
+.c-metric-value {
+  font-size: 1.35rem;
+  font-weight: 800;
+  color: var(--text-primary);
+}
+
+.c-metric-sub {
+  font-size: 0.72rem;
+  color: var(--text-secondary);
+  line-height: 1.3;
 }
 
 .insights-grid {
@@ -2178,56 +2300,414 @@ body {
   font-size: 0.75rem;
 }
 
-/* Responsive Breakpoints */
-@media (max-width: 900px) {
-  .couple-selection-row {
-    grid-template-columns: 1fr;
-    gap: 1rem;
+/* ==========================================================================
+   Comprehensive Responsive Design System
+   Optimized for Mobile (320px - 480px), Phablets (481px - 768px),
+   Tablets (769px - 1024px), and Desktop viewports.
+   ========================================================================== */
+
+/* 1. Tablet & Medium Screens (max-width: 1024px) */
+@media (max-width: 1024px) {
+  .app-main {
+    padding: 0 1.25rem 3.5rem;
   }
 
-  .swap-btn-container {
-    margin: -0.5rem 0;
+  .surnames-grid {
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 0.85rem;
   }
 
-  .modal-grid-2 {
-    grid-template-columns: 1fr;
+  .footer-content {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.5rem;
   }
 }
 
-@media (max-width: 640px) {
+/* 2. Small Tablets & Landscape Phablets (max-width: 900px) */
+@media (max-width: 900px) {
   .hero-section {
-    padding: 2rem 1rem 1.25rem;
+    padding: 2.25rem 1.25rem 1.5rem;
   }
 
-  .hero-stats-row {
-    gap: 0.5rem;
-    padding: 0.4rem 0.85rem;
-  }
-
-  .view-mode-nav {
-    width: 100%;
-  }
-
-  .view-tab-btn {
-    padding: 0.35rem 0.65rem;
-    font-size: 0.75rem;
-  }
-
+  /* Secondary Filters Grid */
   .secondary-filters-row {
     flex-direction: column;
     align-items: stretch;
+    gap: 0.75rem;
+    padding: 0.75rem;
   }
 
   .filter-selects-group {
-    flex-direction: column;
-    align-items: stretch;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.5rem;
+    width: 100%;
   }
 
   .filter-select {
     width: 100%;
   }
 
+  .filter-actions-group {
+    width: 100%;
+  }
+
+  .filter-actions-group .btn {
+    width: 100%;
+    justify-content: center;
+  }
+
+  /* Sagotra Checker layout */
+  .couple-selection-row {
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+
+  .swap-btn-container {
+    padding-top: 0;
+    margin: 0.25rem 0;
+    display: flex;
+    justify-content: center;
+  }
+
+  .partner-card-select {
+    padding: 1.15rem 1rem;
+  }
+
+  .insights-grid {
+    grid-template-columns: 1fr;
+    gap: 1.25rem;
+  }
+}
+
+/* 3. Phablets & Large Mobiles (max-width: 768px) */
+@media (max-width: 768px) {
+  .site-header {
+    padding: 0.5rem 1rem;
+  }
+
+  /* Nav Tabs: Horizontal smooth touch scrolling */
+  .view-mode-nav {
+    display: flex;
+    width: 100%;
+    max-width: 100%;
+    overflow-x: auto;
+    justify-content: flex-start;
+    padding: 4px;
+    gap: 4px;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .view-mode-nav::-webkit-scrollbar {
+    display: none;
+  }
+
+  .view-tab-btn {
+    flex-shrink: 0;
+    padding: 0.45rem 0.85rem;
+    font-size: 0.8rem;
+  }
+
+  /* Search bar touch refinements */
+  .search-shortcut {
+    display: none;
+  }
+
+  .search-input {
+    font-size: 1rem; /* Prevents auto-zoom on mobile safari */
+  }
+
+  /* Responsive Table Sticky Surname column */
+  .responsive-table th:first-child,
+  .responsive-table td:first-child {
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--bg-surface);
+    box-shadow: 2px 0 6px rgba(0, 0, 0, 0.12);
+  }
+
+  .responsive-table th:first-child {
+    background: var(--bg-secondary);
+    z-index: 3;
+  }
+}
+
+/* 4. Standard Smartphones (max-width: 640px) */
+@media (max-width: 640px) {
+  .site-header {
+    padding: 0.45rem 0.85rem;
+  }
+
+  .brand-wrapper {
+    gap: 0.65rem;
+  }
+
+  .brand-logo-container {
+    width: 38px;
+    height: 38px;
+    border-radius: 8px;
+  }
+
+  .brand-title-nepali {
+    font-size: 0.9rem;
+  }
+
+  .brand-title-english {
+    display: none; /* Hide long English line on mobile for clean, single-row header */
+  }
+
+  .portfolio-backlink-btn {
+    width: 34px;
+    height: 34px;
+    padding: 0;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 8px;
+  }
+
+  .portfolio-backlink-btn span {
+    display: none;
+  }
+
+  #favDrawerOpenBtn {
+    padding: 0.35rem 0.55rem;
+    gap: 0.25rem;
+    font-size: 0.75rem;
+  }
+
+  #favDrawerOpenBtn span:first-of-type {
+    display: none; /* Only show icon + counter */
+  }
+
+  .hero-section {
+    padding: 1.5rem 0.85rem 1rem;
+  }
+
+  .hero-pill {
+    font-size: 0.68rem;
+    padding: 0.2rem 0.6rem;
+    max-width: 100%;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+
+  .hero-title {
+    font-size: clamp(1.65rem, 6.5vw, 2.2rem);
+    line-height: 1.25;
+    margin-bottom: 0.45rem;
+  }
+
+  .hero-subtitle {
+    font-size: 0.86rem;
+    line-height: 1.55;
+    margin-bottom: 1rem;
+  }
+
+  .hero-stats-row {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 0.6rem 0.75rem;
+    width: 100%;
+    max-width: 320px;
+    padding: 0.6rem 0.85rem;
+    border-radius: 10px;
+    margin-bottom: 1.25rem;
+  }
+
+  .hero-stat-sep {
+    display: none;
+  }
+
+  .hero-stat-item {
+    justify-content: center;
+  }
+
+  .hero-stat-num {
+    font-size: 0.9rem;
+  }
+
+  .hero-stat-text {
+    font-size: 0.75rem;
+  }
+
+  .search-container {
+    margin-bottom: 1rem;
+  }
+
+  .app-main {
+    padding: 0 0.85rem 3rem;
+  }
+
   .surnames-grid {
+    grid-template-columns: 1fr;
+    gap: 0.75rem;
+  }
+
+  .surname-card {
+    padding: 1rem;
+  }
+
+  .card-devanagari {
+    font-size: 1.25rem;
+  }
+
+  /* Gotra Explorer Container */
+  .sagotra-finder-container {
+    padding: 1.25rem 1rem;
+    border-radius: 10px;
+  }
+
+  .sagotra-header h2 {
+    font-size: 1.25rem;
+  }
+
+  .sagotra-info-banner {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 0.75rem;
+  }
+
+  /* Couple Checker Container */
+  .couple-checker-container {
+    padding: 1.25rem 0.85rem;
+    border-radius: 10px;
+  }
+
+  .checker-hero-header {
+    margin-bottom: 1.5rem;
+  }
+
+  .checker-hero-header h2 {
+    font-size: 1.35rem;
+  }
+
+  .checker-hero-header p {
+    font-size: 0.85rem;
+  }
+
+  .partner-card-select {
+    padding: 1rem 0.85rem;
+  }
+
+  .partner-role-nepali {
+    font-size: 0.95rem;
+  }
+
+  .collision-result-card {
+    padding: 1.25rem 1rem;
+  }
+
+  .result-status-title {
+    font-size: 1.05rem;
+  }
+
+  .lineage-compare-table {
+    display: block;
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    white-space: nowrap;
+  }
+
+  /* Preset Chips Bar */
+  .checker-presets-container {
+    padding: 0.85rem 1rem;
+  }
+
+  .presets-chips-wrap {
+    gap: 0.45rem;
+  }
+
+  .preset-chip {
+    padding: 0.35rem 0.75rem;
+    font-size: 0.76rem;
+  }
+
+  /* Detail Information Modal (Bottom Sheet feel on Mobile) */
+  .modal-overlay {
+    padding: 0.5rem;
+    align-items: flex-end;
+  }
+
+  .modal-card {
+    max-height: 92vh;
+    border-radius: 16px 16px 8px 8px;
+    width: 100%;
+  }
+
+  .modal-header {
+    padding: 0.95rem 1.15rem;
+  }
+
+  .modal-title-dev {
+    font-size: 1.55rem;
+  }
+
+  .modal-title-rom {
+    font-size: 0.95rem;
+  }
+
+  .modal-body {
+    padding: 1rem 1.15rem;
+    gap: 1rem;
+  }
+
+  .detail-grid {
+    grid-template-columns: 1fr;
+    gap: 0.6rem;
+  }
+
+  .modal-footer {
+    padding: 0.85rem 1.15rem;
+  }
+
+  /* Drawer Mobile Full Width */
+  .drawer {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  /* Footer */
+  .site-footer {
+    padding: 2rem 1rem 1.5rem;
+  }
+
+  .footer-content {
+    grid-template-columns: 1fr;
+    gap: 1.5rem;
+  }
+
+  .footer-bottom {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+}
+
+/* 5. Ultra-Small Smartphones (max-width: 380px) */
+@media (max-width: 380px) {
+  .site-header {
+    padding: 0.4rem 0.65rem;
+  }
+
+  .brand-title-nepali {
+    font-size: 0.82rem;
+  }
+
+  .hero-stats-row {
+    grid-template-columns: 1fr;
+    gap: 0.4rem;
+  }
+
+  .filter-selects-group {
+    grid-template-columns: 1fr;
+  }
+
+  .sagotra-info-banner {
     grid-template-columns: 1fr;
   }
 }

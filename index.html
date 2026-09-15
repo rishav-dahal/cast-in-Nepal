@@ -219,7 +219,7 @@
     <!-- Streamlined Inline Stats Ribbon -->
     <div class="hero-stats-row">
       <div class="hero-stat-item">
-        <span class="hero-stat-num" id="statTotalCount">697</span>
+        <span class="hero-stat-num" id="statTotalCount">696</span>
         <span class="hero-stat-text">Verified Surnames</span>
       </div>
       <div class="hero-stat-sep">•</div>
@@ -234,8 +234,8 @@
       </div>
       <div class="hero-stat-sep">•</div>
       <div class="hero-stat-item">
-        <span class="hero-stat-num" id="statRegionCount">7</span>
-        <span class="hero-stat-text">Provinces</span>
+        <span class="hero-stat-num" id="statRegionCount">142</span>
+        <span class="hero-stat-text">Census Castes</span>
       </div>
     </div>
 
@@ -247,7 +247,7 @@
           type="text"
           id="searchInput"
           class="search-input"
-          placeholder="Search surname, gotra, or community (e.g. Acharya, Dahal, Maharjan, Kashyap)..."
+          placeholder="Search surname, gotra, origin village (e.g. Timilsain, Achham, Jumla, Dahal)..."
           autocomplete="off"
           spellcheck="false"
           aria-label="Search Nepali Surnames"
@@ -274,7 +274,7 @@
         <span>Sagotra Checker</span>
       </button>
       <button class="view-tab-btn" id="viewInsightsBtn">
-        <span>Cultural Guide</span>
+        <span>Census &amp; Guide</span>
       </button>
     </nav>
   </section>
@@ -448,8 +448,9 @@
   <!-- Toast Notification Container -->
   <div class="toast-container" id="toastContainer" aria-live="polite"></div>
 
-  <!-- Scripts -->
-  <script src="js/casteData.js"></script>
-  <script src="js/app.js"></script>
+  <!-- Scripts with cache busters -->
+  <script src="js/censusData.js?v=2.2"></script>
+  <script src="js/casteData.js?v=2.2"></script>
+  <script src="js/app.js?v=2.2"></script>
 </body>
 </html>

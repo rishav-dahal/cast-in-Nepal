@@ -30,7 +30,7 @@ for x in data:
     # Check for Khas names mislabeled as Newar
     if 'newar' in cat.lower() and s in ['Acharya', 'Agnihotri', 'Bhatta', 'Dev', 'Giri', 'Jha', 'Mishra', 'Sharma', 'Shukla']:
         oddities.append((x['id'], s, c, cat, sub, 'Dubious Newar title/Brahmin entry'))
-    if 'rai' in c.lower() and s in ['Chaurasiya']:
+    if c.lower() == 'rai' and s in ['Chaurasiya']:
         oddities.append((x['id'], s, c, cat, sub, 'Misclassified Terai caste as Rai'))
     if 'tharu' in c.lower() and s in ['Khas']:
         oddities.append((x['id'], s, c, cat, sub, 'Khas in Tharu'))
