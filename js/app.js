@@ -27,7 +27,7 @@
     partnerAId: 1,
     partnerAGotra: '',
     partnerAMamaGotra: '',
-    partnerBId: 575,
+    partnerBId: 565, // Sapkota
     partnerBGotra: '',
     partnerBMamaGotra: '',
     evaluated: true
@@ -87,10 +87,131 @@
     initTheme();
     populateStats();
     populateFilterDropdowns();
+    handleUrlParameters();
     renderCategoryFilterBar();
     updateFavBadge();
     bindEvents();
     render();
+  }
+
+  /**
+   * Deep-linking & URL State Management
+   */
+  function handleUrlParameters() {
+    try {
+      const params = new URLSearchParams(window.location.search);
+
+      // View mode (?view=grid|table|sagotra|checker|insights)
+      const view = params.get('view');
+      if (view && ['grid', 'table', 'sagotra', 'checker', 'insights'].includes(view.toLowerCase())) {
+        state.viewMode = view.toLowerCase();
+        const viewButtons = [
+          { btn: DOM.viewGridBtn, mode: 'grid' },
+          { btn: DOM.viewTableBtn, mode: 'table' },
+          { btn: DOM.viewSagotraBtn, mode: 'sagotra' },
+          { btn: DOM.viewCheckerBtn, mode: 'checker' },
+          { btn: DOM.viewInsightsBtn, mode: 'insights' }
+        ];
+        viewButtons.forEach(b => {
+          if (b.btn) b.btn.classList.toggle('active', b.mode === state.viewMode);
+        });
+      }
+
+      // Search query (?search=Dahal)
+      const search = params.get('search');
+      if (search) {
+        state.searchQuery = search.trim();
+        if (DOM.searchInput) DOM.searchInput.value = state.searchQuery;
+      }
+
+      // Caste query (?caste=Chhetri)
+      const caste = params.get('caste');
+      if (caste) {
+        state.searchQuery = caste.trim();
+        if (DOM.searchInput) DOM.searchInput.value = state.searchQuery;
+      }
+
+      // Category (?category=khas-arya)
+      const cat = params.get('category');
+      if (cat) {
+        const catMap = {
+          'khas-arya': 'Khas-Arya',
+          'khas': 'Khas-Arya',
+          'newar': 'Newar',
+          'janajati': 'Janajati / Indigenous',
+          'indigenous': 'Janajati / Indigenous',
+          'madhesi': 'Madhesi / Terai',
+          'dalit': 'Dalit',
+          'muslim': 'Muslim'
+        };
+        const normalized = catMap[cat.toLowerCase()] || cat;
+        state.selectedCategory = normalized;
+      }
+
+      // Gotra (?gotra=Kaudinya)
+      const gotra = params.get('gotra');
+      if (gotra && DOM.gotraFilterSelect) {
+        const options = Array.from(DOM.gotraFilterSelect.options);
+        const match = options.find(o => o.value.toLowerCase() === gotra.toLowerCase());
+        if (match) {
+          state.selectedGotra = match.value;
+          DOM.gotraFilterSelect.value = match.value;
+        } else {
+          state.selectedGotra = gotra;
+        }
+      }
+
+      // Community (?community=Bahun)
+      const community = params.get('community');
+      if (community && DOM.communityFilterSelect) {
+        const options = Array.from(DOM.communityFilterSelect.options);
+        const match = options.find(o => o.value.toLowerCase() === community.toLowerCase());
+        if (match) {
+          state.selectedCommunity = match.value;
+          DOM.communityFilterSelect.value = match.value;
+        }
+      }
+
+      // Direct ID modal (?id=667)
+      const id = params.get('id');
+      if (id && window.CASTE_DATABASE) {
+        const item = CASTE_DATABASE.find(x => x.id === parseInt(id, 10));
+        if (item) {
+          setTimeout(() => openDetailModal(item), 250);
+        }
+      }
+    } catch (e) {
+      console.warn('URL parameter parsing failed', e);
+    }
+  }
+
+  function updateUrlState() {
+    try {
+      const url = new URL(window.location.href);
+      if (state.searchQuery) url.searchParams.set('search', state.searchQuery);
+      else url.searchParams.delete('search');
+
+      if (state.selectedCategory && state.selectedCategory !== 'all') {
+        const slug = state.selectedCategory.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, '');
+        url.searchParams.set('category', slug);
+      } else {
+        url.searchParams.delete('category');
+      }
+
+      if (state.selectedGotra && state.selectedGotra !== 'all') {
+        url.searchParams.set('gotra', state.selectedGotra);
+      } else {
+        url.searchParams.delete('gotra');
+      }
+
+      if (state.viewMode && state.viewMode !== 'grid') {
+        url.searchParams.set('view', state.viewMode);
+      } else {
+        url.searchParams.delete('view');
+      }
+
+      window.history.replaceState({}, '', url.pathname + url.search + url.hash);
+    } catch (e) {}
   }
 
   /**
@@ -137,7 +258,7 @@
     if (DOM.statTotalCount) DOM.statTotalCount.textContent = totalSurnames;
     if (DOM.statCatCount) DOM.statCatCount.textContent = categories;
     if (DOM.statGotraCount) DOM.statGotraCount.textContent = gotras;
-    if (DOM.statRegionCount) DOM.statRegionCount.textContent = '7';
+    if (DOM.statRegionCount) DOM.statRegionCount.textContent = window.CENSUS_2021_DATA ? String(window.CENSUS_2021_DATA.length) : '142';
   }
 
   /**
@@ -190,7 +311,7 @@
     });
 
     DOM.categoryFilterBar.innerHTML = categories.map(cat => {
-      const label = cat === 'all' ? 'All Surnames' : cat;
+      const label = cat === 'all' ? 'All Clusters' : cat;
       const count = counts[cat] || 0;
       const isActive = state.selectedCategory === cat ? 'active' : '';
       return `<button class="cat-pill ${isActive}" data-category="${cat}">
@@ -227,7 +348,7 @@
         return false;
       }
 
-      // Search Query filter (English & Devanagari fuzzy matching)
+      // Search Query filter (English & Devanagari fuzzy matching including historic origin)
       if (state.searchQuery) {
         const q = state.searchQuery.toLowerCase().trim();
         const searchCorpus = [
@@ -237,6 +358,8 @@
           item.subcaste_or_clan,
           item.gotra,
           item.gotra_devanagari,
+          item.origin || '',
+          item.origin_devanagari || '',
           item.kuldevata,
           item.region,
           item.notes
@@ -306,6 +429,9 @@
         renderCardsView(data);
         break;
     }
+
+    // Synchronize URL parameters for sharing and SEO
+    updateUrlState();
   }
 
   /**
@@ -374,13 +500,19 @@
               <span class="meta-value">${escapeHtml(item.gotra)}${item.gotra_devanagari ? ` (${item.gotra_devanagari})` : ''}</span>
             </div>
             <div class="meta-row">
+              <span class="meta-label">Historic Origin:</span>
+              <span class="meta-value" style="color: var(--brand-primary); font-weight: 600;">${escapeHtml(item.origin || item.region)}</span>
+            </div>
+            <div class="meta-row">
               <span class="meta-label">Kuldevata:</span>
               <span class="meta-value">${escapeHtml(item.kuldevata)}</span>
             </div>
-            <div class="meta-row">
-              <span class="meta-label">Region:</span>
-              <span class="meta-value">${escapeHtml(item.region)}</span>
+            ${item.census_pop ? `
+            <div class="meta-row" style="margin-top: 0.2rem; padding-top: 0.35rem; border-top: 1px dashed var(--border-subtle); font-size: 0.78rem;">
+              <span class="meta-label">2021 Census:</span>
+              <span class="meta-value" style="color: var(--text-secondary);">${Number(item.census_pop).toLocaleString()} (${item.census_pct}%) • Rank #${item.census_rank}</span>
             </div>
+            ` : ''}
           </div>
         </div>
 
@@ -419,8 +551,9 @@
               <th data-sort="category">Category</th>
               <th data-sort="community">Community</th>
               <th>Gotra / Clan</th>
+              <th>Historic Origin (उद्गमस्थल)</th>
               <th>Kuldevata</th>
-              <th>Primary Region</th>
+              <th>2021 Census Pop</th>
               <th style="text-align: center; width: 60px;">Saved</th>
             </tr>
           </thead>
@@ -444,8 +577,9 @@
                   </td>
                   <td><strong>${escapeHtml(item.community)}</strong></td>
                   <td>${escapeHtml(item.gotra)}${item.gotra_devanagari ? ` (${item.gotra_devanagari})` : ''}</td>
+                  <td><strong style="color: var(--brand-primary);">${escapeHtml(item.origin || item.region)}</strong></td>
                   <td>${escapeHtml(item.kuldevata)}</td>
-                  <td>${escapeHtml(item.region)}</td>
+                  <td>${item.census_pop ? `<strong>${Number(item.census_pop).toLocaleString()}</strong> <span style="font-size: 0.72rem; color: var(--text-muted);">(#${item.census_rank})</span>` : '—'}</td>
                   <td style="text-align: center;" onclick="event.stopPropagation();">
                     <button class="btn btn-icon" data-fav-id="${item.id}" title="Toggle Save" style="width: 28px; height: 28px;">
                       ${getFavIconSvg(isFav)}
@@ -853,7 +987,7 @@
     if (DOM.paginationContainer) DOM.paginationContainer.style.display = 'none';
 
     if (!checkerState.partnerAId) checkerState.partnerAId = 1; // Acharya
-    if (!checkerState.partnerBId) checkerState.partnerBId = 575; // Sapkota
+    if (!checkerState.partnerBId) checkerState.partnerBId = 565; // Sapkota
 
     const partnerA = CASTE_DATABASE.find(x => x.id === checkerState.partnerAId) || CASTE_DATABASE[0];
     const partnerB = CASTE_DATABASE.find(x => x.id === checkerState.partnerBId) || CASTE_DATABASE[1];
@@ -1277,22 +1411,147 @@
     if (!DOM.contentSection || !window.CASTE_DATABASE) return;
     if (DOM.paginationContainer) DOM.paginationContainer.style.display = 'none';
 
-    // Compute distribution
+    // Compute archive distribution
     const catCounts = {};
     CASTE_DATABASE.forEach(item => {
       catCounts[item.category] = (catCounts[item.category] || 0) + 1;
     });
 
     const total = CASTE_DATABASE.length;
+    const censusData = window.CENSUS_2021_DATA || [];
+    const topCastes = censusData.slice(0, 30);
 
     const insightsHtml = `
       <div class="insights-container">
+        <!-- Official National Census 2021 Explorer -->
+        <div class="census-explorer-card">
+          <div class="census-explorer-header">
+            <div>
+              <div class="census-official-pill">
+                <span style="font-size: 0.9rem;">🇳🇵</span>
+                <span>Government of Nepal • National Statistics Office (NSO)</span>
+              </div>
+              <h2 style="font-size: 1.6rem; font-weight: 800; color: var(--text-primary); margin: 0.5rem 0 0.25rem;">
+                राष्ट्रिय जनगणना २०७८: जातजाति तथ्याङ्क (National Census 2021)
+              </h2>
+              <p style="color: var(--text-secondary); font-size: 0.92rem; margin: 0;">
+                Official demographic profile and population distribution across Nepal's 142 officially recognized castes and ethnic communities.
+              </p>
+            </div>
+            <div class="census-stat-badge">
+              <span class="census-stat-badge-num">29,164,578</span>
+              <span class="census-stat-badge-label">Total National Population</span>
+            </div>
+          </div>
+
+          <!-- Key Census Metrics Ribbon -->
+          <div class="census-metric-grid">
+            <div class="census-metric-tile">
+              <span class="c-metric-title">Recognized Castes</span>
+              <span class="c-metric-value">142</span>
+              <span class="c-metric-sub">125 (2011) + 17 newly identified</span>
+            </div>
+            <div class="census-metric-tile">
+              <span class="c-metric-title">Mother Tongues</span>
+              <span class="c-metric-value">124</span>
+              <span class="c-metric-sub">Nepali: 44.86%, Maithili: 11.05%</span>
+            </div>
+            <div class="census-metric-tile">
+              <span class="c-metric-title">Indigenous Janajati</span>
+              <span class="c-metric-value">35.81%</span>
+              <span class="c-metric-sub">~10.45M (Magar, Tharu, Tamang, etc.)</span>
+            </div>
+            <div class="census-metric-tile">
+              <span class="c-metric-title">Khas-Arya Cluster</span>
+              <span class="c-metric-value">31.25%</span>
+              <span class="c-metric-sub">~9.11M (Kshetri, Bahun, Thakuri, Sanyasi)</span>
+            </div>
+            <div class="census-metric-tile">
+              <span class="c-metric-title">Dalit Communities</span>
+              <span class="c-metric-value">13.80%</span>
+              <span class="c-metric-sub">~4.02M (Hill Dalit 8.53%, Terai Dalit 5.27%)</span>
+            </div>
+            <div class="census-metric-tile">
+              <span class="c-metric-title">Madhesi Non-Dalit</span>
+              <span class="c-metric-value">15.30%</span>
+              <span class="c-metric-sub">~4.46M (Yadav, Teli, Koiri, Kurmi, etc.)</span>
+            </div>
+          </div>
+
+          <!-- Interactive Census Castes Table -->
+          <div style="margin-top: 1.75rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem; flex-wrap: wrap; gap: 0.75rem;">
+              <h3 style="font-size: 1.15rem; font-weight: 700; color: var(--text-primary); margin: 0;">
+                Official Population of Top Castes &amp; Ethnicities (शीर्ष जातजातिहरू)
+              </h3>
+              <div style="position: relative; width: 260px; max-width: 100%;">
+                <input
+                  type="text"
+                  id="censusSearchInput"
+                  placeholder="Search caste, gotra, subcaste, mother tongue (e.g. Maudgalya, कामी, मैथिली)..."
+                  style="width: 100%; padding: 0.45rem 0.85rem; font-size: 0.84rem; border-radius: 8px; border: 1px solid var(--border-subtle); background: var(--bg-surface-elevated); color: var(--text-primary); outline: none;"
+                />
+              </div>
+            </div>
+
+            <div class="table-container" style="max-height: 520px; overflow-y: auto;">
+              <table class="responsive-table" id="censusTable">
+                <thead>
+                  <tr>
+                    <th style="width: 45px;">Rank</th>
+                    <th>Caste / Ethnicity (जात/जाति)</th>
+                    <th>Cluster</th>
+                    <th>Sub-castes &amp; Clans (उपथर/शाखा)</th>
+                    <th>Associated Gotras (सम्बन्धित गोत्रहरू)</th>
+                    <th>Mother Tongue (मातृभाषा)</th>
+                    <th style="text-align: right; width: 130px;">2021 Pop &amp; %</th>
+                    <th style="text-align: center; width: 110px;">Archive Surnames</th>
+                  </tr>
+                </thead>
+                <tbody id="censusTableBody">
+                  ${topCastes.map(c => `
+                    <tr>
+                      <td style="font-weight: 700; color: var(--text-muted); font-size: 0.85rem;">#${c.rank}</td>
+                      <td>
+                        <strong style="color: var(--text-primary); font-size: 0.95rem;">${escapeHtml(c.caste)}</strong>
+                        <div style="font-size: 0.82rem; color: var(--text-secondary); font-weight: 600;">${escapeHtml(c.devanagari)}</div>
+                        ${c.amended_from_2011 && !c.amended_from_2011.includes('Unchanged') ? `<div style="font-size: 0.72rem; color: var(--brand-primary); margin-top: 0.15rem;">📌 ${escapeHtml(c.amended_from_2011)}</div>` : ''}
+                      </td>
+                      <td><span class="badge" style="font-size: 0.72rem;">${escapeHtml(c.cluster)}</span></td>
+                      <td style="font-size: 0.82rem; color: var(--text-secondary); max-width: 220px; line-height: 1.4;">${escapeHtml(c.subcastes || '—')}</td>
+                      <td style="font-size: 0.82rem; color: var(--text-secondary); max-width: 200px; line-height: 1.4;">${escapeHtml(c.major_gotras || '—')}</td>
+                      <td style="font-size: 0.82rem; color: var(--text-secondary); max-width: 170px;">${escapeHtml(c.primary_language || '—')}</td>
+                      <td style="text-align: right;">
+                        <div style="font-weight: 700; color: var(--brand-primary); font-size: 0.92rem;">${Number(c.population).toLocaleString()}</div>
+                        <div style="font-size: 0.76rem; color: var(--text-secondary);">${c.percent}% of Nepal</div>
+                        <div style="width: 100%; height: 4px; background: var(--border-subtle); border-radius: 4px; overflow: hidden; margin-top: 0.25rem;">
+                          <div style="width: ${Math.min(100, c.percent * 5)}%; height: 100%; background: var(--brand-primary); border-radius: 4px;"></div>
+                        </div>
+                      </td>
+                      <td style="text-align: center;">
+                        ${c.surnames_count > 0 ? `
+                          <button onclick="window.filterByCensusCaste('${escapeHtml(c.caste)}')" class="btn btn-secondary" style="padding: 0.35rem 0.65rem; font-size: 0.75rem; border-radius: 6px; white-space: nowrap; cursor: pointer; border-color: var(--border-subtle);">
+                            🔍 ${c.surnames_count} Surnames
+                          </button>
+                        ` : `<span style="font-size: 0.75rem; color: var(--text-muted);">—</span>`}
+                      </td>
+                    </tr>
+                  `).join('')}
+                </tbody>
+              </table>
+            </div>
+            <div style="font-size: 0.78rem; color: var(--text-muted); margin-top: 0.6rem; text-align: right;">
+              Data Source: National Population and Housing Census 2021 (National Report on Caste/Ethnicity, Language and Religion, NSO Nepal) • Fact-checked with National Commissions
+            </div>
+          </div>
+        </div>
+
         <div class="insights-grid">
-          <!-- Demographic Distribution -->
+          <!-- Archive Surname Distribution -->
           <div class="insight-card">
-            <h3>📊 Ethnic & Cultural Representation</h3>
+            <h3>📊 Digital Archive Representation</h3>
             <p style="color: var(--text-secondary); font-size: 0.9rem; margin-bottom: 1.25rem;">
-              Breakdown of 700+ documented Nepali surnames across major historic and anthropological categories.
+              Breakdown of ${total} documented Nepali family surnames across our curated cultural clusters.
             </p>
             <div class="dist-bar-list">
               ${Object.entries(catCounts).map(([cat, count]) => {
@@ -1324,19 +1583,19 @@
                 </div>
               </div>
               <div class="guide-item">
-                <div class="guide-header">2. Newar Guthi & Guild Heritage <span>+</span></div>
+                <div class="guide-header">2. Newar Guthi &amp; Guild Heritage <span>+</span></div>
                 <div class="guide-body">
                   Newar society in Kathmandu Valley developed an extraordinary guild and Guthi (trust) system combining Hindu and Buddhist lineages, maintaining sacred dances, chariot festivals, artisan craftsmanship, and clan deity (Digu Dya) worship.
                 </div>
               </div>
               <div class="guide-item">
-                <div class="guide-header">3. Kirat Mundhum, Phaid & Janajati Clans <span>+</span></div>
+                <div class="guide-header">3. Kirat Mundhum, Phaid &amp; Janajati Clans <span>+</span></div>
                 <div class="guide-body">
                   Indigenous communities such as Rai, Limbu, Magar, Tamang, and Gurung organize through clan structures (Phaid, Samet, Thar, Rhu). Governed by oral scriptures like the Kirat Mundhum, they venerate nature, hearth stones, and ancestral protectors.
                 </div>
               </div>
               <div class="guide-item">
-                <div class="guide-header">4. Constitutional Equality & Social Harmony <span>+</span></div>
+                <div class="guide-header">4. Constitutional Equality &amp; Social Harmony <span>+</span></div>
                 <div class="guide-body">
                   The modern Constitution of Nepal guarantees full equality, outlawing discrimination based on caste or origin (Articles 18 and 24). This portal serves educational and genealogical appreciation of Nepal's cultural diversity.
                 </div>
@@ -1348,6 +1607,52 @@
     `;
 
     DOM.contentSection.innerHTML = insightsHtml;
+
+    // Attach Census table search filter
+    const censusSearchInput = document.getElementById('censusSearchInput');
+    const censusTableBody = document.getElementById('censusTableBody');
+    if (censusSearchInput && censusTableBody && window.CENSUS_2021_DATA) {
+      censusSearchInput.addEventListener('input', (e) => {
+        const query = e.target.value.toLowerCase().trim();
+        const filteredCensus = window.CENSUS_2021_DATA.filter(c => 
+          c.caste.toLowerCase().includes(query) ||
+          c.devanagari.toLowerCase().includes(query) ||
+          c.cluster.toLowerCase().includes(query) ||
+          (c.subcastes && c.subcastes.toLowerCase().includes(query)) ||
+          (c.major_gotras && c.major_gotras.toLowerCase().includes(query)) ||
+          (c.primary_language && c.primary_language.toLowerCase().includes(query))
+        );
+
+        censusTableBody.innerHTML = filteredCensus.slice(0, 50).map(c => `
+          <tr>
+            <td style="font-weight: 700; color: var(--text-muted); font-size: 0.85rem;">#${c.rank}</td>
+            <td>
+              <strong style="color: var(--text-primary); font-size: 0.95rem;">${escapeHtml(c.caste)}</strong>
+              <div style="font-size: 0.82rem; color: var(--text-secondary); font-weight: 600;">${escapeHtml(c.devanagari)}</div>
+              ${c.amended_from_2011 && !c.amended_from_2011.includes('Unchanged') ? `<div style="font-size: 0.72rem; color: var(--brand-primary); margin-top: 0.15rem;">📌 ${escapeHtml(c.amended_from_2011)}</div>` : ''}
+            </td>
+            <td><span class="badge" style="font-size: 0.72rem;">${escapeHtml(c.cluster)}</span></td>
+            <td style="font-size: 0.82rem; color: var(--text-secondary); max-width: 220px; line-height: 1.4;">${escapeHtml(c.subcastes || '—')}</td>
+            <td style="font-size: 0.82rem; color: var(--text-secondary); max-width: 200px; line-height: 1.4;">${escapeHtml(c.major_gotras || '—')}</td>
+            <td style="font-size: 0.82rem; color: var(--text-secondary); max-width: 170px;">${escapeHtml(c.primary_language || '—')}</td>
+            <td style="text-align: right;">
+              <div style="font-weight: 700; color: var(--brand-primary); font-size: 0.92rem;">${Number(c.population).toLocaleString()}</div>
+              <div style="font-size: 0.76rem; color: var(--text-secondary);">${c.percent}% of Nepal</div>
+              <div style="width: 100%; height: 4px; background: var(--border-subtle); border-radius: 4px; overflow: hidden; margin-top: 0.25rem;">
+                <div style="width: ${Math.min(100, c.percent * 5)}%; height: 100%; background: var(--brand-primary); border-radius: 4px;"></div>
+              </div>
+            </td>
+            <td style="text-align: center;">
+              ${c.surnames_count > 0 ? `
+                <button onclick="window.filterByCensusCaste('${escapeHtml(c.caste)}')" class="btn btn-secondary" style="padding: 0.35rem 0.65rem; font-size: 0.75rem; border-radius: 6px; white-space: nowrap; cursor: pointer; border-color: var(--border-subtle);">
+                  🔍 ${c.surnames_count} Surnames
+                </button>
+              ` : `<span style="font-size: 0.75rem; color: var(--text-muted);">—</span>`}
+            </td>
+          </tr>
+        `).join('');
+      });
+    }
 
     // Collapsible accordion triggers
     const guideHeaders = DOM.contentSection.querySelectorAll('.guide-header');
@@ -1457,16 +1762,44 @@
           </div>
 
           <div class="detail-section">
-            <span class="detail-section-title">🛕 Spiritual & Regional Roots (कुलदेवता तथा उद्गम)</span>
+            <span class="detail-section-title">📍 Historical Origin & Sacred Roots (उद्गमस्थल तथा कुलदेवता)</span>
             <div class="detail-grid">
+              <div class="detail-box">
+                <div class="detail-box-label">Historic Origin (ऐतिहासिक उद्गमस्थल / विर्तास्थान):</div>
+                <div class="detail-box-value gold-highlight">
+                  ${escapeHtml(item.origin || item.region)}
+                  ${item.origin_devanagari ? `<div style="font-size: 0.85rem; color: var(--text-secondary); margin-top: 0.25rem;">${escapeHtml(item.origin_devanagari)}</div>` : ''}
+                </div>
+              </div>
               <div class="detail-box">
                 <div class="detail-box-label">Kuldevata (कुलदेवता):</div>
                 <div class="detail-box-value gold-highlight">${escapeHtml(item.kuldevata)}</div>
               </div>
               <div class="detail-box">
-                <div class="detail-box-label">Traditional Homeland / Concentration:</div>
+                <div class="detail-box-label">Primary Geography / Provinces:</div>
                 <div class="detail-box-value">${escapeHtml(item.region)}</div>
               </div>
+              ${item.census_pop ? (() => {
+                const cMeta = window.CENSUS_2021_DATA ? window.CENSUS_2021_DATA.find(c => c.caste === item.census_caste) : null;
+                return `
+                <div class="detail-box" style="background: var(--bg-surface-elevated); border-color: var(--brand-primary); grid-column: 1 / -1;">
+                  <div class="detail-box-label">🇳🇵 Official 2021 Census Demographics &amp; Cultural Classification:</div>
+                  <div class="detail-box-value" style="font-weight: 700; color: var(--text-primary); font-size: 0.95rem;">
+                    ${escapeHtml(item.census_caste)}${cMeta ? ` (${escapeHtml(cMeta.devanagari)})` : ''}: 
+                    <span style="color: var(--brand-primary);">${Number(item.census_pop).toLocaleString()}</span> 
+                    <span style="font-size: 0.85rem; color: var(--text-secondary); font-weight: 500;">(${item.census_pct}% of Nepal)</span>
+                    <span class="badge badge-khas" style="margin-left: 0.5rem; font-size: 0.72rem;">National Rank #${item.census_rank}</span>
+                  </div>
+                  ${cMeta ? `
+                    <div style="font-size: 0.82rem; color: var(--text-secondary); margin-top: 0.5rem; display: flex; flex-direction: column; gap: 0.25rem; border-top: 1px dashed var(--border-subtle); padding-top: 0.4rem;">
+                      <div>🗣️ <strong>Mother Tongue (मातृभाषा):</strong> <span style="color: var(--text-primary); font-weight: 600;">${escapeHtml(cMeta.primary_language)}</span></div>
+                      <div>🏛️ <strong>Recognized Sub-castes (उपथर/शाखा):</strong> ${escapeHtml(cMeta.subcastes)}</div>
+                      <div>✨ <strong>Prevalent Gotras (सम्बन्धित गोत्रहरू):</strong> ${escapeHtml(cMeta.major_gotras)}</div>
+                    </div>
+                  ` : ''}
+                </div>
+                `;
+              })() : ''}
             </div>
           </div>
 
@@ -1913,6 +2246,27 @@
       }
     });
   }
+
+  // Global helper for census table links
+  window.filterByCensusCaste = function(casteName) {
+    state.viewMode = 'grid';
+    state.activeCategory = 'all';
+    state.selectedCommunity = 'all';
+    state.selectedGotra = 'all';
+    state.selectedRegion = 'all';
+    state.searchQuery = casteName;
+    if (DOM.searchInput) DOM.searchInput.value = casteName;
+    if (DOM.communityFilterSelect) DOM.communityFilterSelect.value = 'all';
+    if (DOM.gotraFilterSelect) DOM.gotraFilterSelect.value = 'all';
+    if (DOM.regionFilterSelect) DOM.regionFilterSelect.value = 'all';
+    setActiveViewButton(DOM.viewGridBtn);
+    renderCategoryFilterBar();
+    render();
+    if (DOM.contentSection) {
+      window.scrollTo({ top: DOM.contentSection.offsetTop - 80, behavior: 'smooth' });
+    }
+    showToast(`Showing verified surnames associated with ${casteName}`);
+  };
 
   // Run on DOM ready
   if (document.readyState === 'loading') {

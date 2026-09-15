@@ -11,7 +11,8 @@
 <p align="center">
   <a href="https://rishav-dahal.github.io/cast-in-Nepal/"><img src="https://img.shields.io/badge/Live_Site-GitHub_Pages-0b2545?style=for-the-badge&logo=github" alt="Live Site" /></a>
   <a href="#-how-to-contribute-missing-data"><img src="https://img.shields.io/badge/Contributions-Welcome-c8102e?style=for-the-badge&logo=git" alt="Contributions Welcome" /></a>
-  <img src="https://img.shields.io/badge/Verified_Records-697+-10b981?style=for-the-badge" alt="Verified Records" />
+  <img src="https://img.shields.io/badge/Verified_Records-696+-10b981?style=for-the-badge" alt="Verified Records" />
+  <img src="https://img.shields.io/badge/Census_2021-Integrated-blue?style=for-the-badge" alt="Census 2021 Integrated" />
   <img src="https://img.shields.io/badge/Cultural_Clusters-6-f59e0b?style=for-the-badge" alt="Cultural Clusters" />
   <img src="https://img.shields.io/badge/License-MIT-blue?style=for-the-badge" alt="License" />
 </p>

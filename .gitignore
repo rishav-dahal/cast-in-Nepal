@@ -1,0 +1,18 @@
+# Python cache
+__pycache__/
+*.py[cod]
+*$py.class
+*.pyo
+
+# OS artifacts
+.DS_Store
+Thumbs.db
+Desktop.ini
+
+# Large Documents & Raw Sources
+*.pdf
+*.log
+*.tmp
+.vscode/
+.idea/
+
