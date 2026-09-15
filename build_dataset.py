@@ -2012,7 +2012,7 @@ print("Successfully regenerated data/census_2021.json and js/censusData.js")
 import urllib.parse
 import datetime
 
-BASE_URL = 'https://rishav-dahal.github.io/cast-in-Nepal/'
+BASE_URL = 'https://www.rishavdahal.com.np/cast-in-nepal/'
 TODAY = datetime.date.today().isoformat()
 urls = []
 urls.append((BASE_URL, '1.0', 'daily'))

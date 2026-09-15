@@ -3,4 +3,4 @@ User-agent: *
 Allow: /
 
 # Sitemap Location
-Sitemap: https://rishav-dahal.github.io/cast-in-Nepal/sitemap.xml
+Sitemap: https://www.rishavdahal.com.np/cast-in-nepal/sitemap.xml

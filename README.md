@@ -9,7 +9,7 @@
 </h3>
 
 <p align="center">
-  <a href="https://rishav-dahal.github.io/cast-in-Nepal/"><img src="https://img.shields.io/badge/Live_Site-GitHub_Pages-0b2545?style=for-the-badge&logo=github" alt="Live Site" /></a>
+  <a href="https://www.rishavdahal.com.np/cast-in-nepal/"><img src="https://img.shields.io/badge/Live_Site-GitHub_Pages-0b2545?style=for-the-badge&logo=github" alt="Live Site" /></a>
   <a href="#-how-to-contribute-missing-data"><img src="https://img.shields.io/badge/Contributions-Welcome-c8102e?style=for-the-badge&logo=git" alt="Contributions Welcome" /></a>
   <img src="https://img.shields.io/badge/Verified_Records-696+-10b981?style=for-the-badge" alt="Verified Records" />
   <img src="https://img.shields.io/badge/Census_2021-Integrated-blue?style=for-the-badge" alt="Census 2021 Integrated" />
@@ -25,7 +25,7 @@
 
 The project also features an interactive **Sagotra Compatibility Checker** (*सगोत्र विवाह जाँच*) that explains traditional exogamy principles along with modern medical genetics insights on consanguinity.
 
-> 🌐 **Live Website**: [https://rishav-dahal.github.io/cast-in-Nepal/](https://rishav-dahal.github.io/cast-in-Nepal/)
+> 🌐 **Live Website**: [https://www.rishavdahal.com.np/cast-in-nepal/](https://www.rishavdahal.com.np/cast-in-nepal/)
 
 ---
 
