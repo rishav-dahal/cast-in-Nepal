@@ -97,6 +97,29 @@
   /**
    * Deep-linking & URL State Management
    */
+  /**
+   * Helper to find surname item in CASTE_DATABASE by ID, exact name, or partial alias
+   */
+  function findSurnameMatch(query) {
+    if (!query || !window.CASTE_DATABASE) return null;
+    const q = String(query).trim().toLowerCase();
+    const num = parseInt(q, 10);
+    if (!isNaN(num) && String(num) === q) {
+      const byId = CASTE_DATABASE.find(x => x.id === num);
+      if (byId) return byId;
+    }
+    // Exact match on surname or devanagari
+    let match = CASTE_DATABASE.find(x => (x.surname && x.surname.toLowerCase() === q) || (x.devanagari && x.devanagari.toLowerCase() === q));
+    if (match) return match;
+    // Segment match (e.g. Timilsina in "Timilsina / Timalsina / ...")
+    match = CASTE_DATABASE.find(x => {
+      if (!x.surname) return false;
+      const parts = x.surname.toLowerCase().split('/').map(s => s.trim());
+      return parts.includes(q) || x.surname.toLowerCase().includes(q) || (x.devanagari && x.devanagari.includes(q));
+    });
+    return match || null;
+  }
+
   function handleUrlParameters() {
     try {
       const params = new URLSearchParams(window.location.search);
@@ -180,6 +203,31 @@
           setTimeout(() => openDetailModal(item), 250);
         }
       }
+
+      // Sagotra Checker query params (?view=checker&groom=dahal&bride=timilsina)
+      const groomParam = params.get('groom') || params.get('groomId') || params.get('partnerA');
+      if (groomParam && window.CASTE_DATABASE) {
+        const itemA = findSurnameMatch(groomParam);
+        if (itemA) {
+          checkerState.partnerAId = itemA.id;
+          checkerState.partnerAGotra = itemA.gotra;
+        }
+      }
+
+      const brideParam = params.get('bride') || params.get('brideId') || params.get('partnerB');
+      if (brideParam && window.CASTE_DATABASE) {
+        const itemB = findSurnameMatch(brideParam);
+        if (itemB) {
+          checkerState.partnerBId = itemB.id;
+          checkerState.partnerBGotra = itemB.gotra;
+        }
+      }
+
+      const groomMamaParam = params.get('groom_mama');
+      if (groomMamaParam) checkerState.partnerAMamaGotra = groomMamaParam;
+
+      const brideMamaParam = params.get('bride_mama');
+      if (brideMamaParam) checkerState.partnerBMamaGotra = brideMamaParam;
     } catch (e) {
       console.warn('URL parameter parsing failed', e);
     }
@@ -208,6 +256,34 @@
         url.searchParams.set('view', state.viewMode);
       } else {
         url.searchParams.delete('view');
+      }
+
+      if (state.viewMode === 'checker') {
+        if (checkerState.partnerAId) {
+          const pA = window.CASTE_DATABASE ? CASTE_DATABASE.find(x => x.id === checkerState.partnerAId) : null;
+          const groomSlug = pA && pA.surname ? pA.surname.split('/')[0].trim().toLowerCase() : checkerState.partnerAId;
+          url.searchParams.set('groom', groomSlug);
+        }
+        if (checkerState.partnerBId) {
+          const pB = window.CASTE_DATABASE ? CASTE_DATABASE.find(x => x.id === checkerState.partnerBId) : null;
+          const brideSlug = pB && pB.surname ? pB.surname.split('/')[0].trim().toLowerCase() : checkerState.partnerBId;
+          url.searchParams.set('bride', brideSlug);
+        }
+        if (checkerState.partnerAMamaGotra) {
+          url.searchParams.set('groom_mama', checkerState.partnerAMamaGotra);
+        } else {
+          url.searchParams.delete('groom_mama');
+        }
+        if (checkerState.partnerBMamaGotra) {
+          url.searchParams.set('bride_mama', checkerState.partnerBMamaGotra);
+        } else {
+          url.searchParams.delete('bride_mama');
+        }
+      } else {
+        url.searchParams.delete('groom');
+        url.searchParams.delete('bride');
+        url.searchParams.delete('groom_mama');
+        url.searchParams.delete('bride_mama');
       }
 
       window.history.replaceState({}, '', url.pathname + url.search + url.hash);
@@ -1062,9 +1138,9 @@
             </div>
 
             <div class="partner-selected-box">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                <span style="font-family: var(--font-deva); font-size: 1.45rem; font-weight: 700; color: var(--text-primary);">${escapeHtml(partnerA.devanagari)}</span>
-                <span style="font-size: 1.05rem; font-weight: 600; color: var(--accent-blue);">${escapeHtml(partnerA.surname)}</span>
+              <div class="partner-selected-name-row">
+                <span class="partner-selected-deva">${escapeHtml(partnerA.devanagari)}</span>
+                <span class="partner-selected-roman partner-roman-groom">${escapeHtml(partnerA.surname)}</span>
               </div>
               <div style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 0.25rem;">
                 ${escapeHtml(partnerA.community)} • ${escapeHtml(partnerA.category)}
@@ -1118,9 +1194,9 @@
             </div>
 
             <div class="partner-selected-box">
-              <div style="display: flex; justify-content: space-between; align-items: baseline;">
-                <span style="font-family: var(--font-deva); font-size: 1.45rem; font-weight: 700; color: var(--text-primary);">${escapeHtml(partnerB.devanagari)}</span>
-                <span style="font-size: 1.05rem; font-weight: 600; color: var(--accent-rose);">${escapeHtml(partnerB.surname)}</span>
+              <div class="partner-selected-name-row">
+                <span class="partner-selected-deva">${escapeHtml(partnerB.devanagari)}</span>
+                <span class="partner-selected-roman partner-roman-bride">${escapeHtml(partnerB.surname)}</span>
               </div>
               <div style="font-size: 0.84rem; color: var(--text-secondary); margin-top: 0.25rem;">
                 ${escapeHtml(partnerB.community)} • ${escapeHtml(partnerB.category)}
@@ -1370,34 +1446,51 @@
       });
     });
 
+    updateUrlState();
+
     const copyReportBtn = document.getElementById('copyReportBtn');
     const shareReportBtn = document.getElementById('shareReportBtn');
 
+    function getCheckerShareUrl() {
+      const shareUrl = new URL(window.location.origin + window.location.pathname);
+      shareUrl.searchParams.set('view', 'checker');
+      const groomSlug = partnerA && partnerA.surname ? partnerA.surname.split('/')[0].trim().toLowerCase() : checkerState.partnerAId;
+      const brideSlug = partnerB && partnerB.surname ? partnerB.surname.split('/')[0].trim().toLowerCase() : checkerState.partnerBId;
+      shareUrl.searchParams.set('groom', groomSlug);
+      shareUrl.searchParams.set('bride', brideSlug);
+      if (checkerState.partnerAMamaGotra) shareUrl.searchParams.set('groom_mama', checkerState.partnerAMamaGotra);
+      if (checkerState.partnerBMamaGotra) shareUrl.searchParams.set('bride_mama', checkerState.partnerBMamaGotra);
+      return shareUrl.toString();
+    }
+
     if (copyReportBtn && evaluation) {
       copyReportBtn.addEventListener('click', () => {
+        const shareLink = getCheckerShareUrl();
         const text = `नेपाली सगोत्र विवाह जाँच प्रतिवेदन (Couple Gotra Compatibility Report):\n` +
           `वर (Groom): ${partnerA.surname} (${partnerA.devanagari}) - गोत्र: ${partnerA.gotra}\n` +
           `वधु (Bride): ${partnerB.surname} (${partnerB.devanagari}) - गोत्र: ${partnerB.gotra}\n` +
           `निस्कर्ष (Verdict): ${evaluation.titleNepali}\n` +
           `विवरण: ${evaluation.summary}\n` +
+          `जाँच लिङ्क (Direct Link): ${shareLink}\n` +
           `स्रोत: नेपालका जातजाति, थर तथा गोत्र संकलन पोर्टल`;
         navigator.clipboard.writeText(text).then(() => {
-          showToast('Copied compatibility report to clipboard!');
+          showToast('Copied compatibility report with link to clipboard!');
         });
       });
     }
 
     if (shareReportBtn && evaluation) {
       shareReportBtn.addEventListener('click', () => {
+        const shareLink = getCheckerShareUrl();
         if (navigator.share) {
           navigator.share({
             title: `Couple Gotra Compatibility: ${partnerA.surname} & ${partnerB.surname}`,
             text: `Gotra check between ${partnerA.surname} (${partnerA.gotra}) and ${partnerB.surname} (${partnerB.gotra}): ${evaluation.titleNepali}`,
-            url: window.location.href
+            url: shareLink
           }).catch(() => {});
         } else {
-          navigator.clipboard.writeText(window.location.href).then(() => {
-            showToast('Link copied to clipboard!');
+          navigator.clipboard.writeText(shareLink).then(() => {
+            showToast('Direct pair link copied to clipboard!');
           });
         }
       });
