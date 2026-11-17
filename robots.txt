@@ -2,5 +2,8 @@
 User-agent: *
 Allow: /
 
+# Disallow dynamic search and filter query parameters to avoid crawl waste
+Disallow: /*?*
+
 # Sitemap Location
 Sitemap: https://www.rishavdahal.com.np/cast-in-nepal/sitemap.xml

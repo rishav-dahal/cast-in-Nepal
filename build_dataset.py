@@ -2008,62 +2008,29 @@ with open('js/censusData.js', 'w', encoding='utf-8') as f:
 
 print("Successfully regenerated data/census_2021.json and js/censusData.js")
 
-# Regenerate sitemap.xml
-import urllib.parse
+# Regenerate clean compliant sitemap.xml without query-string bloat
 import datetime
 
 BASE_URL = 'https://www.rishavdahal.com.np/cast-in-nepal/'
 TODAY = datetime.date.today().isoformat()
-urls = []
-urls.append((BASE_URL, '1.0', 'daily'))
-for v in ['grid', 'table', 'sagotra', 'checker', 'insights']:
-    urls.append((f'{BASE_URL}?view={v}', '0.9', 'weekly'))
-for cat in ['khas-arya', 'newar', 'janajati', 'madhesi', 'dalit', 'muslim']:
-    urls.append((f'{BASE_URL}?category={cat}', '0.85', 'weekly'))
-
-gotras_set = set()
-for s in records:
-    g = (s.get('gotra') or '').strip()
-    if g and g not in ['—', '-', 'None', 'Unknown', 'Various', 'N/A', '']:
-        gotras_set.add(g)
-for g in sorted(gotras_set):
-    urls.append((f'{BASE_URL}?gotra={urllib.parse.quote(g)}', '0.80', 'monthly'))
-
-for c in CENSUS_LIST:
-    caste_name = c.get('caste', '').strip()
-    if caste_name:
-        urls.append((f'{BASE_URL}?caste={urllib.parse.quote(caste_name)}', '0.75', 'monthly'))
-
-surnames_set = set()
-for s in records:
-    name = (s.get('surname') or '').strip()
-    if name:
-        for part in name.split('/'):
-            clean_part = part.strip()
-            if clean_part:
-                surnames_set.add(clean_part)
-for sn in sorted(surnames_set):
-    urls.append((f'{BASE_URL}?search={urllib.parse.quote(sn)}', '0.70', 'monthly'))
+urls = [
+    (BASE_URL, '1.0', 'weekly')
+]
 
 xml_lines = [
     '<?xml version="1.0" encoding="UTF-8"?>',
-    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9"',
-    '        xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"',
-    '        xsi:schemaLocation="http://www.sitemaps.org/schemas/sitemap/0.9',
-    '        http://www.sitemaps.org/schemas/sitemap/0.9/sitemap.xsd">'
+    '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
+    '  <url>',
+    f'    <loc>{BASE_URL}</loc>',
+    f'    <lastmod>{TODAY}</lastmod>',
+    '    <changefreq>weekly</changefreq>',
+    '    <priority>1.0</priority>',
+    '  </url>',
+    '</urlset>\n'
 ]
-for loc, priority, changefreq in urls:
-    clean_loc = loc.replace('&', '&amp;')
-    xml_lines.append('  <url>')
-    xml_lines.append(f'    <loc>{clean_loc}</loc>')
-    xml_lines.append(f'    <lastmod>{TODAY}</lastmod>')
-    xml_lines.append(f'    <changefreq>{changefreq}</changefreq>')
-    xml_lines.append(f'    <priority>{priority}</priority>')
-    xml_lines.append('  </url>')
-xml_lines.append('</urlset>\n')
 
 with open('sitemap.xml', 'w', encoding='utf-8') as f:
     f.write('\n'.join(xml_lines))
 
-print(f"Successfully generated sitemap.xml with {len(urls)} URLs!")
+print("Successfully generated clean sitemap.xml with canonical base URL!")
 
